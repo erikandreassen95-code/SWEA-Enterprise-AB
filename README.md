@@ -59,6 +59,10 @@ Kontrollen går igenom sidstruktur, interna länkar och resurser via HTTP, noind
 
 ## Senare Vercel-publicering
 
-Inget har publicerats. Statiska filer i `dist/` kan senare levereras av Vercel med byggkommando `node scripts/build.mjs` och output directory `dist`. Ingen Neon-databas behövs för nuvarande funktioner. Kontrollera kommersiell Vercel-plan, produktionsformulär och lanseringspunkterna ovan först. Inga konton, abonnemang eller externa tjänster har ändrats.
+`vercel.json` konfigurerar projektet som **Other** (`framework: null`), hoppar över paketinstallation och kör `node scripts/build.mjs` med output directory `dist`. Node-versionen är satt till 22.x i `package.json`. Projektet har inga externa paketberoenden och ska inte byggas som Next.js.
+
+I Vercel ska Root Directory vara repots rot (lämna fältet tomt). Konfigurationen i Git ersätter tidigare ramverks-, installations- och bygginställningar. Deploya den nya committen efter att `vercel.json` har pushats; en redeploy av den gamla committen innehåller inte rättningen. Några SPA-rewrites behövs inte: varje sida har sin egen katalog med `index.html` och en separat `404.html` finns.
+
+Ingen Neon-databas behövs för nuvarande funktioner. Kontaktformuläret är fortsatt en uttryckligt märkt demo och sökindexering är avstängd tills lanseringspunkterna ovan är klara. Den här konfigurationsändringen ansluter ingen mejltjänst och ändrar inga abonnemang.
 
 Next.js var det ursprungliga förslaget. Paketinstallationen slog i miljöns minnesgräns, så den lokala leveransen använder en liten statisk byggare och en Node-server utan externa beroenden.
