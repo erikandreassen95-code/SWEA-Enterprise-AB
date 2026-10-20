@@ -1,113 +1,96 @@
 (() => {
-  const successMessage =
-    "Det här är en lokal demo. Inget har skickats och inga personuppgifter har sparats.";
-
   function initializeContactForm() {
     const form = document.getElementById("contact-form");
     const status = document.getElementById("form-status");
     if (!(form instanceof HTMLFormElement) || !status) return;
 
+    const submitButton = form.querySelector('[data-contact-submit], button[type="submit"]');
+    if (!(submitButton instanceof HTMLButtonElement)) return;
+    if (!form.querySelector('.cf-turnstile[data-sitekey]')) return;
+
+    const originalButtonLabel = submitButton.textContent;
     const fields = Object.fromEntries(
       ["name", "email", "company", "phone", "location", "service", "description", "website"].map(
-        (fieldName) => [fieldName, form.elements.namedItem(fieldName)]
+        (name) => [name, form.elements.namedItem(name)]
       )
     );
-    const submitButton = form.querySelector(
-      'button[data-demo-submit], button[type="submit"], button[type="button"][disabled]'
-    );
-    if (
-      !(fields.name instanceof HTMLInputElement) ||
-      !(fields.email instanceof HTMLInputElement) ||
-      !(fields.description instanceof HTMLTextAreaElement) ||
-      !(fields.service instanceof HTMLSelectElement) ||
-      !(submitButton instanceof HTMLButtonElement)
-    ) {
-      return;
-    }
-
-    form.noValidate = false;
-    fields.name.required = true;
-    fields.name.maxLength = 100;
-    fields.email.required = true;
-    fields.email.type = "email";
-    fields.email.maxLength = 254;
-    fields.description.required = true;
-    fields.description.maxLength = 2000;
-    fields.service.required = true;
     const requestedService = new URLSearchParams(window.location.search).get("tjanst");
-    if (requestedService && [...fields.service.options].some((option) => option.value === requestedService)) {
+    if (requestedService && fields.service instanceof HTMLSelectElement &&
+        [...fields.service.options].some((option) => option.value === requestedService)) {
       fields.service.value = requestedService;
     }
 
-    for (const [fieldName, maximum] of [
-      ["company", 120],
-      ["phone", 40],
-      ["location", 120],
-    ]) {
-      const field = fields[fieldName];
-      if (field instanceof HTMLInputElement) field.maxLength = maximum;
-    }
-
-    for (const field of [fields.name, fields.description]) {
-      field.addEventListener("input", () => field.setCustomValidity(""));
-    }
-
-    status.setAttribute("role", "status");
-    status.setAttribute("aria-live", "polite");
-    const originalButtonLabel = submitButton.textContent;
-    let submissionLocked = false;
-
-    function showConfirmation() {
-      form.reset();
-      submitButton.textContent = "Demo klar";
+    function showStatus(message, success) {
       status.hidden = false;
-      status.textContent = successMessage;
-      const retryButton = document.createElement("button");
-      retryButton.type = "button";
-      retryButton.className = "button";
-      retryButton.textContent = "Prova igen";
-      retryButton.addEventListener("click", () => {
-        submissionLocked = false;
-        submitButton.disabled = false;
-        submitButton.textContent = originalButtonLabel;
-        status.textContent = "";
-        status.hidden = true;
-        fields.name.focus();
-      });
-      status.append(document.createElement("br"), retryButton);
+      status.textContent = message;
+      status.dataset.state = success ? "success" : "error";
     }
 
-    form.addEventListener("submit", (event) => {
-      event.preventDefault();
-      if (submissionLocked) return;
+    function resetTurnstile() {
+      if (window.turnstile && typeof window.turnstile.reset === "function") {
+        window.turnstile.reset();
+      }
+    }
 
-      // Spam traps receive only the same local confirmation as any demo entry.
-      if (fields.website && fields.website.value) {
-        submissionLocked = true;
-        submitButton.disabled = true;
-        showConfirmation();
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      if (submitButton.disabled || !form.reportValidity()) return;
+
+      const getValue = (name) => {
+        const field = fields[name];
+        return field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement ||
+          field instanceof HTMLSelectElement ? field.value.trim() : "";
+      };
+      const tokenField = form.elements.namedItem("cf-turnstile-response");
+      const turnstileToken = tokenField instanceof HTMLInputElement ? tokenField.value : "";
+      if (!turnstileToken) {
+        showStatus("Bekräfta säkerhetskontrollen och försök igen.", false);
         return;
       }
 
-      for (const field of [fields.name, fields.description]) {
-        if (!field.value.trim()) {
-          field.setCustomValidity("Fyll i det här fältet.");
-          field.reportValidity();
+      const payload = {
+        name: getValue("name"),
+        email: getValue("email"),
+        company: getValue("company"),
+        phone: getValue("phone"),
+        location: getValue("location"),
+        service: getValue("service"),
+        description: getValue("description"),
+        website: getValue("website"),
+        turnstileToken,
+      };
+
+      submitButton.disabled = true;
+      submitButton.textContent = "Skickar …";
+      showStatus("Skickar din förfrågan …", true);
+      try {
+        const response = await fetch("/api/contact", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (!response.ok) {
+          if (response.status === 400) {
+            showStatus("Kontrollera uppgifterna och säkerhetskontrollen. Försök sedan igen.", false);
+          } else if (response.status === 429) {
+            showStatus("För många försök just nu. Vänta en stund och försök igen.", false);
+          } else {
+            showStatus("Det gick inte att skicka förfrågan. Försök igen senare.", false);
+          }
           return;
         }
+        form.reset();
+        showStatus("Tack! Din förfrågan har skickats. Vi återkommer så snart vi kan.", true);
+      } catch {
+        showStatus("Det gick inte att skicka förfrågan. Kontrollera anslutningen och försök igen.", false);
+      } finally {
+        resetTurnstile();
+        submitButton.disabled = false;
+        submitButton.textContent = originalButtonLabel;
       }
-      if (!form.reportValidity()) return;
-
-      // No request or storage is used. The delay exposes the disabled state.
-      submissionLocked = true;
-      submitButton.disabled = true;
-      submitButton.textContent = "Kontrollerar …";
-      status.hidden = false;
-      status.textContent = "Kontrollerar formuläret …";
-      window.setTimeout(showConfirmation, 450);
     });
 
-    // The static markup keeps this button inert until the local handler exists.
+    // The static markup leaves the button inert until this handler is available.
     submitButton.type = "submit";
     submitButton.disabled = false;
   }

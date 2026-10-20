@@ -1,0 +1,72 @@
+{
+  "version": 1,
+  "prune": false,
+  "pages": [
+    {
+      "slug": "home", "title": "Startsida",
+      "blocks": [
+        { "key": "hero.title", "type": "text", "label": "Huvudrubrik", "default": "En extra hand." },
+        { "key": "hero.accent", "type": "text", "label": "Gul rubrikrad", "default": "Fler möjligheter." },
+        { "key": "hero.lead", "type": "text", "label": "Ingress", "default": "Från fiber och nätverk till bygg, uthyrning, konsultinsatser och event. Ett brett utbud för uppdrag som behöver bli gjorda." }
+      ]
+    },
+    {
+      "slug": "about", "title": "Om Anton",
+      "blocks": [
+        { "key": "intro.title", "type": "text", "label": "Rubrik", "default": "En person bakom namnet." },
+        { "key": "intro.body", "type": "text", "label": "Presentation", "default": "SWEA Enterprise AB:s tjänsteutbud sträcker sig över teknik, bygg, uthyrning och praktiska uppdrag. Anton är kontaktpersonen bakom erbjudandet." },
+        { "key": "intro.approach", "type": "text", "label": "Arbetssätt", "default": "Varje uppdrag börjar med att förstå vad som faktiskt behövs. Därefter går det att prata om omfattning, förutsättningar och ett genomförande som passar uppgiften." }
+      ]
+    },
+    {
+      "slug": "fiber-natverk", "title": "Fiber och nätverk",
+      "blocks": [
+        { "key": "title", "type": "text", "label": "Tjänstens namn", "default": "Fiber & nätverk" },
+        { "key": "brief", "type": "text", "label": "Kortbeskrivning", "default": "Fiber, nätverk, projektering och telenät." },
+        { "key": "lead", "type": "text", "label": "Ingress", "default": "För uppdrag som behöver fungera hela vägen från planering till färdig anslutning." },
+        { "key": "intro", "type": "text", "label": "Beskrivning", "default": "Behöver du hjälp med ett fiber- eller nätverksuppdrag? Beskriv plats, omfattning och var i arbetet du befinner dig. Då går det att stämma av rätt insats innan något bestäms." },
+        { "key": "note", "type": "text", "label": "Kompletterande information", "default": "Ett uppdrag kan vara ett avgränsat moment, hjälp under en större entreprenad eller en genomgång innan arbetet börjar." }
+      ]
+    },
+    {
+      "slug": "bygg-montage-installation", "title": "Bygg, montage och installation",
+      "blocks": [
+        { "key": "title", "type": "text", "label": "Tjänstens namn", "default": "Bygg, montage & installation" },
+        { "key": "brief", "type": "text", "label": "Kortbeskrivning", "default": "Snickeri, montage och praktisk hjälp med ditt byggprojekt." },
+        { "key": "lead", "type": "text", "label": "Ingress", "default": "Praktiska insatser när något ska byggas, monteras, tas ned eller förberedas." },
+        { "key": "intro", "type": "text", "label": "Beskrivning", "default": "Här samlas praktiskt arbete inom bygg och montage. Beskriv uppgiften och förutsättningarna, så kan omfattning, material och eventuella behörighetskrav stämmas av innan uppdraget bokas." },
+        { "key": "note", "type": "text", "label": "Kompletterande information", "default": "Vissa installationer kräver särskild behörighet eller ett registrerat företag. Det konkreta momentet behöver kontrolleras innan en överenskommelse görs." }
+      ]
+    },
+    {
+      "slug": "uthyrning", "title": "Uthyrning",
+      "blocks": [
+        { "key": "title", "type": "text", "label": "Tjänstens namn", "default": "Uthyrning" },
+        { "key": "brief", "type": "text", "label": "Kortbeskrivning", "default": "Maskiner och fordon efter aktuell tillgänglighet och villkor." },
+        { "key": "lead", "type": "text", "label": "Ingress", "default": "Fråga om utrustning för det praktiska jobbet." },
+        { "key": "intro", "type": "text", "label": "Beskrivning", "default": "Har du ett projekt där en maskin eller ett fordon behövs? Ange vad du söker, tidsperiod och användningsområde. Aktuellt utbud, pris och villkor lämnas efter avstämning." },
+        { "key": "note", "type": "text", "label": "Utbud och villkor", "default": "Kontakta Anton för aktuellt utbud, tillgänglighet, pris och villkor." }
+      ]
+    },
+    {
+      "slug": "extra-hand-konsult", "title": "Extra hand och konsult",
+      "blocks": [
+        { "key": "title", "type": "text", "label": "Tjänstens namn", "default": "Extra hand & konsult" },
+        { "key": "brief", "type": "text", "label": "Kortbeskrivning", "default": "En extra resurs när ditt företag eller projekt behöver förstärkning." },
+        { "key": "lead", "type": "text", "label": "Ingress", "default": "När ett uppdrag behöver fler händer eller praktiskt stöd." },
+        { "key": "intro", "type": "text", "label": "Beskrivning", "default": "Ibland är behovet inte en färdig tjänstepost. Det kan handla om avlastning under en intensiv period, hjälp med ett avgränsat moment eller praktiskt stöd i ett projekt." },
+        { "key": "note", "type": "text", "label": "Kompletterande information", "default": "Berätta vilken kompetens som behövs, hur länge och på vilken plats. Det gör det lättare att avgöra om uppdraget passar." }
+      ]
+    },
+    {
+      "slug": "kock-event", "title": "Kock och event",
+      "blocks": [
+        { "key": "title", "type": "text", "label": "Tjänstens namn", "default": "Kock & event" },
+        { "key": "brief", "type": "text", "label": "Kortbeskrivning", "default": "Kockuppdrag och eventhjälp efter förfrågan." },
+        { "key": "lead", "type": "text", "label": "Ingress", "default": "Praktisk hjälp när människor ska samlas." },
+        { "key": "intro", "type": "text", "label": "Beskrivning", "default": "Beskriv tillfälle, plats, antal personer och vilken typ av insats du söker för ditt kock- eller eventuppdrag." },
+        { "key": "note", "type": "text", "label": "Upplägg och villkor", "default": "Meny, kapacitet, utrustning och ansvar stäms av för varje uppdrag." }
+      ]
+    }
+  ]
+}

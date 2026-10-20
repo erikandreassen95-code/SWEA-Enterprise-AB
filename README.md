@@ -1,68 +1,23 @@
-# SWEA Enterprise AB – lokal hemsida
+# SWEA Enterprise AB
 
-En svensk företagssajt med startsida, tjänsteöversikt, fem tjänstesidor, Om Anton, Utförda jobb, kontakt, integritet och 404-sida. Sol har lett arkitekturen och delegerat design samt kontakt/integritet till subagenter.
+Företagswebbplats på svenska med statiska sidor och ett kontaktformulär. Bygget använder Node.js 22 utan externa paket. Vercel publicerar `dist/` som statiska filer och kör kontaktfunktionen separat.
 
-## Starta
+## Lokal förhandsvisning
 
-Kräver Node.js 20 eller senare. Ingen paketinstallation krävs.
+Kör `node scripts/build.mjs` och därefter `node scripts/serve.mjs`, eller dubbelklicka på `Starta-hemsidan.cmd`. Öppna http://127.0.0.1:4173/. Den lokala servern är endast en förhandsvisning; den kör inte Vercels API-funktion eller skickar kontaktmejl. Lokala sidor har `noindex`.
 
-Dubbelklicka på `Starta-hemsidan.cmd` i projektmappen. Låt terminalfönstret vara öppet och besök **http://127.0.0.1:4173/**. Stäng servern med Ctrl+C.
+Ändra sidmallar och grundtexter i `scripts/build.mjs`, stil i `src/app/globals.css` och integritetstext i `content/privacy.html`. Kör bygget igen efter ändringar. `dist/` är genererad och ska inte redigeras direkt.
 
-Alternativ från projektmappen:
+## Produktion
 
-```powershell
-node scripts/build.mjs
-node scripts/serve.mjs
-```
+Vercel använder `vercel.json` med `framework: null`, tomt installationssteg och `node scripts/build.mjs`. Projektets Root Directory ska vara repots rot. Node-versionen är `22.x` i `package.json`.
 
-Om porten redan används: använd den befintliga servern eller stoppa den innan en ny startas. Servern är avsiktligt bunden till denna dator, inte till hela nätverket.
+Miljövariablerna finns i `.env.example`. Hemliga värden hör hemma i Vercels miljövariabler, aldrig i Git. Kontaktformuläret behöver en verifierad Resend-avsändardomän, en fungerande mottagarinkorg och Cloudflare Turnstile. Resend sköter utskicket från formuläret; inkommande e-post till `anton@sweaenterprise.se` och aliaset `info@sweaenterprise.se` går till STRATO-inkorgen enligt domänens MX-inställningar.
 
-## Ändra och granska
+SiteCMS används vid bygget för redigerbara texter. Kör `npm run cms:sync` när schemat har ändrats och CMS-uppgifterna är på plats. Webbplatsen är statisk, så en publicerad ändring i SiteCMS måste starta ett nytt Vercel-bygge via den skyddade webhooken. SiteCMS-nyckeln skickas aldrig till webbläsaren. Med `CMS_REQUIRED=true` ska bygget stoppa om CMS-kopplingen saknas eller misslyckas. Lämna `CMS_REQUIRED=false` för lokal förhandsvisning utan CMS.
 
-- `scripts/build.mjs`: sidmallar, tjänstetexter och navigation.
-- `src/app/globals.css`: layout, färger, typografi och mobilanpassning.
-- `public/site.js`: mobilmeny.
-- `public/contact-form.js`: lokal formulärdemo och validering.
-- `content/privacy.html`: integritetsinformation för demon.
-- `assets/brand/swea-logotyp-referens.png`: användarens oförändrade logotypreferens; symbolen visas genom CSS.
+Indexering öppnas endast när `VERCEL_ENV=production`, `SITE_URL=https://sweaenterprise.se` och `SITE_INDEXABLE=true` samtidigt. Förhandsvisningar förblir avindexerade. Det är en avsiktlig publiceringsspärr, så sätt den sista flaggan först efter kontrollerna i [LANSERING.md](LANSERING.md).
 
-Kör `node scripts/build.mjs` efter ändringar och ladda sedan om webbläsaren. `dist/` skapas automatiskt och ska inte handredigeras. Servern behöver normalt inte startas om när endast innehållet byggs om.
+## Kontroller
 
-Med servern igång kan du köra:
-
-```powershell
-node scripts/check.mjs
-```
-
-Kontrollen går igenom sidstruktur, interna länkar och resurser via HTTP, noindex samt riktig 404-status. Mobilmeny, FAQ, tjänstenavigation och formulärdemo har också granskats i webbläsare.
-
-## Vad som fungerar nu
-
-- Alla fem tjänsteområden har egen sida och kontaktväg.
-- Responsiv svart/gul design med logotyp och lokala systemtypsnitt.
-- Tangentbordsfokus, hoppa-till-innehåll, mobilmeny och FAQ.
-- Kontaktformulär med obligatoriska fält, e-postkontroll, textgränser, dubbeltrycksspärr och återställning.
-- Tjänsten kan förväljas från respektive tjänstesida.
-- Demokvittensen är tydlig: inget meddelande skickas och ingen formulärdata sparas av sajten.
-- Sidtitlar, beskrivningar, svenska HTML-sidor och sökbara textstrukturer är förberedda. Lokala versionen har avsiktligt noindex.
-
-## Före offentlig lansering
-
-1. Bekräfta Antons telefon, e-post, företagsuppgifter, arbetsområde och exakta erbjudande.
-2. Lägg till porträtt och riktiga arbetsbilder samt godkända projektbeskrivningar. Inga kundcase eller omdömen har hittats på.
-3. Bekräfta uthyrningsobjekt, priser/villkor och eventuella behörighetskrävande arbetsmoment.
-4. Välj kontaktleverantör och anslut verklig mottagning med validering, missbruksskydd och tydlig felhantering. Demon har ingen backend. Publicera inte ett demoformulär som om det tog emot förfrågningar.
-5. Anpassa integritetsinformation och rutiner till de faktiska leverantörerna och lagringen.
-6. Ange stabil produktionsadress, canonical, sitemap, delningsmetadata och relevanta verifierade strukturerade företagsuppgifter. Dessa ska inte peka på en gissad domän.
-7. Aktivera indexering för färdig produktion: ändra HTML-metadata och `robots.txt`. Den lokala serverns noindex-header ska fortsatt skydda lokal granskning.
-8. Verifiera Search Console, skicka sitemap och uppdatera Google Företagsprofil. Indexering eller placering kan inte garanteras.
-
-## Senare Vercel-publicering
-
-`vercel.json` konfigurerar projektet som **Other** (`framework: null`), hoppar över paketinstallation och kör `node scripts/build.mjs` med output directory `dist`. Node-versionen är satt till 22.x i `package.json`. Projektet har inga externa paketberoenden och ska inte byggas som Next.js.
-
-I Vercel ska Root Directory vara repots rot (lämna fältet tomt). Konfigurationen i Git ersätter tidigare ramverks-, installations- och bygginställningar. Deploya den nya committen efter att `vercel.json` har pushats; en redeploy av den gamla committen innehåller inte rättningen. Några SPA-rewrites behövs inte: varje sida har sin egen katalog med `index.html` och en separat `404.html` finns.
-
-Ingen Neon-databas behövs för nuvarande funktioner. Kontaktformuläret är fortsatt en uttryckligt märkt demo och sökindexering är avstängd tills lanseringspunkterna ovan är klara. Den här konfigurationsändringen ansluter ingen mejltjänst och ändrar inga abonnemang.
-
-Next.js var det ursprungliga förslaget. Paketinstallationen slog i miljöns minnesgräns, så den lokala leveransen använder en liten statisk byggare och en Node-server utan externa beroenden.
+Kör `node --test` för funktionstester och `node scripts/check.mjs` medan den lokala servern kör. Den senare går igenom sidstruktur, interna länkar, resurser och 404-svar. En riktig sändning och mottagning måste dessutom provas i den färdiga Vercel-miljön innan formuläret används i produktion.

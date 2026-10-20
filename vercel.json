@@ -4,5 +4,12 @@
   "installCommand": "",
   "buildCommand": "node scripts/build.mjs",
   "outputDirectory": "dist",
-  "trailingSlash": true
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "www.sweaenterprise.se" }],
+      "destination": "https://sweaenterprise.se/:path*",
+      "permanent": true
+    }
+  ]
 }
