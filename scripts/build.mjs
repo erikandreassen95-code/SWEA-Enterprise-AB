@@ -6,7 +6,7 @@ const cmsContent = await loadSiteContent();
 const dist = join(process.cwd(), 'dist');
 rmSync(dist, { recursive: true, force: true });
 mkdirSync(dist, { recursive: true });
-const siteUrl = 'https://sweaenterprise.se';
+const siteUrl = 'https://www.sweaenterprise.se';
 const requestedIndexable = process.env.VERCEL_ENV === 'production'
   && process.env.SITE_URL === siteUrl
   && process.env.SITE_INDEXABLE === 'true';

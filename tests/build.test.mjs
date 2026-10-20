@@ -24,7 +24,7 @@ async function buildFixture(overrides) {
   const run = spawnSync(process.execPath, ['--input-type=module', '-e', source], {
     cwd,
     encoding: 'utf8',
-    env: { ...process.env, SITE_URL: 'https://sweaenterprise.se', SITE_INDEXABLE: 'true', VERCEL_ENV: 'production', CMS_REQUIRED: 'true', CMS_SITE: 'test-site', CMS_API_KEY: 'test-secret-key-not-for-browser', CMS_API_URL: 'https://sitecms.se', TURNSTILE_SITE_KEY: 'test-public-key', ...overrides },
+    env: { ...process.env, SITE_URL: 'https://www.sweaenterprise.se', SITE_INDEXABLE: 'true', VERCEL_ENV: 'production', CMS_REQUIRED: 'true', CMS_SITE: 'test-site', CMS_API_KEY: 'test-secret-key-not-for-browser', CMS_API_URL: 'https://sitecms.se', TURNSTILE_SITE_KEY: 'test-public-key', ...overrides },
   });
   return { cwd, run, html: run.status === 0 ? await readFile(join(cwd, 'dist/index.html'), 'utf8') : '' };
 }
@@ -34,7 +34,7 @@ test('Production build uses CMS and SEO, escapes edited text and keeps private k
   try {
     assert.equal(run.status, 0, run.stderr);
     assert.match(html, /<title>CMS-rubrik<\/title>/);
-    assert.match(html, /rel="canonical" href="https:\/\/sweaenterprise.se\/"/);
+    assert.match(html, /rel="canonical" href="https:\/\/www.sweaenterprise.se\/"/);
     assert.match(html, /name="robots" content="index,follow"/);
     assert.match(html, /&lt;img src=x onerror=alert\(1\)&gt;/);
     assert.ok(!html.includes('<img src=x'));

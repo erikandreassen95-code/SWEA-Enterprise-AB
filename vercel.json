@@ -7,8 +7,8 @@
   "redirects": [
     {
       "source": "/:path*",
-      "has": [{ "type": "host", "value": "www.sweaenterprise.se" }],
-      "destination": "https://sweaenterprise.se/:path*",
+      "has": [{ "type": "host", "value": "sweaenterprise.se" }],
+      "destination": "https://www.sweaenterprise.se/:path*",
       "permanent": true
     }
   ]

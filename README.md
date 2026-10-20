@@ -16,7 +16,9 @@ Miljövariablerna finns i `.env.example`. Hemliga värden hör hemma i Vercels m
 
 SiteCMS används vid bygget för redigerbara texter. Kör `npm run cms:sync` när schemat har ändrats och CMS-uppgifterna är på plats. Webbplatsen är statisk, så en publicerad ändring i SiteCMS måste starta ett nytt Vercel-bygge via den skyddade webhooken. SiteCMS-nyckeln skickas aldrig till webbläsaren. Med `CMS_REQUIRED=true` ska bygget stoppa om CMS-kopplingen saknas eller misslyckas. Lämna `CMS_REQUIRED=false` för lokal förhandsvisning utan CMS.
 
-Indexering öppnas endast när `VERCEL_ENV=production`, `SITE_URL=https://sweaenterprise.se` och `SITE_INDEXABLE=true` samtidigt. Förhandsvisningar förblir avindexerade. Det är en avsiktlig publiceringsspärr, så sätt den sista flaggan först efter kontrollerna i [LANSERING.md](LANSERING.md).
+Huvudadressen är `https://www.sweaenterprise.se`, vilket följer projektets befintliga domäninställning i Vercel. Rotdomänen omdirigeras dit. Använd samma www-adress i SITE_URL, Turnstile och SiteCMS-webhooken för att undvika omdirigering av API-anrop.
+
+Indexering öppnas endast när `VERCEL_ENV=production`, `SITE_URL=https://www.sweaenterprise.se` och `SITE_INDEXABLE=true` samtidigt. Förhandsvisningar förblir avindexerade. Det är en avsiktlig publiceringsspärr, så sätt den sista flaggan först efter kontrollerna i [LANSERING.md](LANSERING.md).
 
 ## Kontroller
 

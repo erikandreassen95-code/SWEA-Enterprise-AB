@@ -27,7 +27,7 @@ Lägg dem i projektet `sweaenterpriseab` → Settings → Environment Variables.
 
 | Variabel | Produktionsvärde | Varifrån / användning | Hemlig? |
 | --- | --- | --- | --- |
-| `SITE_URL` | `https://sweaenterprise.se` | Huvudadress; serverns origin-kontroll och SEO | Nej |
+| `SITE_URL` | `https://www.sweaenterprise.se` | Huvudadress enligt Vercels befintliga inställning; serverns origin-kontroll och SEO | Nej |
 | `SITE_INDEXABLE` | `false` vid inkoppling, sedan `true` efter testerna nedan | Öppnar Googles indexering enbart på rätt produktionsdomän | Nej |
 | `RESEND_API_KEY` | `re_…` – verklig API-nyckel | Resend → API Keys; ge sändbehörighet begränsad till domänen | **Ja** |
 | `CONTACT_FROM_EMAIL` | `SWEA Enterprise AB <info@sweaenterprise.se>` | Fast, verifierad avsändare för formulärmejl | Nej |
@@ -67,7 +67,7 @@ Domänverifiering ger rätt att skicka från adressen; den skapar inte en Strato
 
 ## 4. DNS-poster i Strato
 
-Behåll DNS hos Strato. Lägg **både** `sweaenterprise.se` och `www.sweaenterprise.se` i Vercel → Settings → Domains. Välj huvuddomänen utan `www`; konfigurera permanent omdirigering från `www` i Vercel. Hämta sedan de rekommenderade A/CNAME-värdena för just projektet.
+Behåll DNS hos Strato. Lägg **både** `sweaenterprise.se` och `www.sweaenterprise.se` i Vercel → Settings → Domains. Använd **www som huvuddomän**, vilket matchar den redan observerade Vercel-inställningen. Rotdomänen omdirigeras till www, aldrig tvärtom. Hämta de rekommenderade A/CNAME-värdena för just projektet.
 
 I Stratos formulär avser ”namn” nedan värdnamnet relativt domänen. Om panelen visar hela domänen ska samma fullständiga namn användas utan att domännamnet läggs till två gånger. `@` kan visas som tomt fält/rotdomän beroende på panelen.
 
@@ -76,7 +76,7 @@ I Stratos formulär avser ”namn” nedan värdnamnet relativt domänen. Om pan
 | Typ | Namn | Värde | Prioritet | Åtgärd |
 | --- | --- | --- | --- | --- |
 | A | `@` | Nuvarande `216.198.79.1`; kontrollera mot **exakt IP Vercel visar** | – | Webbdomänen svarar redan över HTTPS vid kontroll 20/10 |
-| CNAME | `www` | Nuvarande `sweaenterprise.se.`; Vercel kan rekommendera ett projektspecifikt mål | – | Behåll fungerande DNS eller följ Domains-vyns rekommendation; koden omdirigerar www till huvuddomänen |
+| CNAME | `www` | Nuvarande `sweaenterprise.se.`; Vercel kan rekommendera ett projektspecifikt mål | – | Behåll fungerande DNS eller följ Domains-vyns rekommendation; www är huvuddomänen |
 | MX | `@` | Behåll befintlig Strato-post; vid kontroll 19/10: `smtp.rzone.de.` | `5` vid kontroll | Ska fortsätta peka på Strato för inkorgen |
 | TXT/CNAME | Stratos DKIM-namn, om Strato visar ett | Exakt värde från Stratos e-postadministration | – | Behåll/aktivera för Antons vanliga utgående mejl |
 | TXT | `@` om Strato kräver SPF för utgående mejl | Stratos rekommenderade SPF-värde | – | En SPF-policy per värdnamn; skapa inte dubbla SPF-poster |
@@ -106,7 +106,7 @@ Kontrollen visar DNS, inte att postlådan/aliaset är skapade eller att Resend-d
 
 ## 5. Turnstile
 
-Skapa en widget i Cloudflare Turnstile för `sweaenterprise.se` (lägg även till `www.sweaenterprise.se` om den ska kunna visa formuläret före omdirigering). Lägg widgetens site key och secret key i Vercel enligt tabellen. Ingen DNS-flytt eller Cloudflare-proxy behövs.
+Skapa en widget i Cloudflare Turnstile för **`www.sweaenterprise.se`**. Rotdomänen kan också registreras, men den ska omdirigera till www innan besökaren använder formuläret. Lägg widgetens site key och secret key i Vercel enligt tabellen. Ingen DNS-flytt eller Cloudflare-proxy behövs.
 
 Widget och server måste använda samma action `contact`. Servern kontrollerar token, hostname och action; saknad säkerhetskonfiguration ska inte ge ett falskt lyckat formulärsvar. [Cloudflares verifiering](https://developers.cloudflare.com/turnstile/get-started/server-side-validation/).
 
@@ -115,7 +115,7 @@ Widget och server måste använda samma action `contact`. Servern kontrollerar t
 1. Logga in på SiteCMS och skapa en sajt för `sweaenterprise.se` om den inte finns.
 2. Under Integration hämtas sajtens verkliga slug och API-nyckel. Lägg dem i Vercel. Sätt `CMS_REQUIRED=true` i Production när inkopplingen är klar.
 3. Lägg samma slumpmässiga `CMS_REVALIDATE_SECRET` i SiteCMS och Vercel.
-4. Ange revalidate-URL **`https://sweaenterprise.se/api/sitecms/revalidate`**, utan avslutande snedstreck. Den måste nås direkt utan omdirigering eller Vercel-inloggning.
+4. Ange revalidate-URL **`https://www.sweaenterprise.se/api/sitecms/revalidate`**, utan avslutande snedstreck. Den måste nås direkt utan omdirigering eller Vercel-inloggning. Använd inte rotdomänen här eftersom Vercel skickar den vidare till www.
 5. Skapa Deploy Hook för `main` i Vercel. Dess fullständiga hemliga URL lagras endast som `VERCEL_DEPLOY_HOOK_URL` i Vercel.
 6. Med `CMS_API_URL`, `CMS_SITE` och `CMS_API_KEY` satta i en säker lokal process: kör `node scripts/sitecms-sync.mjs` en gång för att registrera `sitecms.schema.json`. Använd Node 22:s env-fil-stöd om nycklarna sparas lokalt: `node --env-file=.env.local scripts/sitecms-sync.mjs`. Filen är Git-ignorerad. Lägg inte nycklarna i kommandoradshistoriken.
 7. Synken skapar sidor/fält med starttexter och använder `prune:false`; den begär inte att befintligt innehåll raderas. Kör samma synk när schemastrukturen senare utökas.
@@ -138,7 +138,7 @@ Detta repo använder SiteCMS dokumenterade REST-API och en statisk byggare, **in
 7. Prova fel: ogiltiga fält, saknad/utgången bot-token och tillfälligt mejlfel får inte ge lyckad kvittens. Telefon/mejl ska vara tydliga alternativ.
 8. Kontrollera aktuella företags-/tjänstetexter och integritetsrutiner. Bestäm gallring i Antons inkorg och leverantörers loggar.
 9. När allt fungerar: sätt `SITE_INDEXABLE=true` och deploya igen. Kontrollera canonical, sitemap, robots och noindex på **den verkliga domänen**; preview ska fortsatt vara noindex.
-10. Verifiera `https://sweaenterprise.se/` i Search Console, skicka `https://sweaenterprise.se/sitemap.xml` och uppdatera Google Företagsprofil.
+10. Verifiera `https://www.sweaenterprise.se/` i Search Console (eller hela domänen med DNS), skicka `https://www.sweaenterprise.se/sitemap.xml` och uppdatera Google Företagsprofil.
 
 ## Kvarvarande konto-/värdeberoenden
 
