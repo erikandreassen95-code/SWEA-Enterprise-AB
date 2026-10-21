@@ -56,6 +56,8 @@ Om du kan ta emot men inte skicka: kontrollera SMTP-servern, port 465, SSL och a
 
 Förfrågningar sparas under **Förfrågningar** i SiteCMS. Anton får också en avisering till den mottagaradress som hemsidan är inställd på. Kunden får en automatisk mottagningsbekräftelse från **info@sweaenterprise.se**. Det är en bekräftelse på mottagning, inte ett avtal eller en bokning. Svara på kundaviseringen för att kontakta kunden.
 
+SiteCMS kan visa ”Inga mejl skickades”. Det gäller SiteCMS egna avstängda aviseringar; hemsidan skickar mejlen separat via Resend. Texten visar därför inte om hemsidans mejl har levererats.
+
 ## Officiell hjälp
 
 - [Stratos serverinställningar](https://www.strato.se/faq/e-post/e-postserver-adresser-portar-ssl-tls/)
