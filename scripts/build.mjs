@@ -9,6 +9,8 @@ const dist = join(process.cwd(), 'dist');
 rmSync(dist, { recursive: true, force: true });
 mkdirSync(dist, { recursive: true });
 for (const [path, content] of pages) {
+  // Vercel must route page requests to the live renderer, not an existing static HTML file.
+  if (process.env.VERCEL === '1' && path.endsWith('/index.html')) continue;
   const target = join(dist, path.slice(1));
   mkdirSync(dirname(target), { recursive: true });
   writeFileSync(target, content, 'utf8');
