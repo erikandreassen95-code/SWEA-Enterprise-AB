@@ -26,7 +26,7 @@ async function buildFixture(overrides) {
     encoding: 'utf8',
     env: { ...process.env, SITE_URL: 'https://www.sweaenterprise.se', SITE_INDEXABLE: 'true', VERCEL_ENV: 'production', CMS_REQUIRED: 'true', CMS_SITE: 'test-site', CMS_API_KEY: 'test-secret-key-not-for-browser', CMS_API_URL: 'https://sitecms.se', ...overrides },
   });
-  return { cwd, run, html: run.status === 0 ? await readFile(join(cwd, 'dist/index.html'), 'utf8') : '' };
+  return { cwd, run, html: run.status === 0 && overrides?.VERCEL !== '1' ? await readFile(join(cwd, 'dist/index.html'), 'utf8') : '' };
 }
 
 test('Production build uses CMS and SEO, escapes edited text and keeps private keys out of output', async () => {
@@ -63,4 +63,16 @@ test('Indexable production refuses an unconnected CMS', async () => {
   const { cwd, run } = await buildFixture({ CMS_REQUIRED: 'false', CMS_SITE: '', CMS_API_KEY: '' });
   try { assert.notEqual(run.status, 0); }
   finally { await rm(cwd, { recursive: true, force: true }); }
+});
+
+test('Vercel output leaves HTML pages to the live renderer and retains assets and SEO files', async () => {
+  const { cwd, run } = await buildFixture({ VERCEL: '1' });
+  try {
+    assert.equal(run.status, 0, run.stderr);
+    await assert.rejects(access(join(cwd, 'dist/index.html')));
+    await assert.rejects(access(join(cwd, 'dist/kontakt/index.html')));
+    await access(join(cwd, 'dist/site.css'));
+    await access(join(cwd, 'dist/404.html'));
+    await access(join(cwd, 'dist/sitemap.xml'));
+  } finally { await rm(cwd, { recursive: true, force: true }); }
 });

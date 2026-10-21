@@ -23,6 +23,14 @@
       "destination": "/api/page?path=/"
     },
     {
+      "source": "/:page(tjanster|om-anton|utforda-jobb|kontakt|integritet)/",
+      "destination": "/api/page?path=/:page/"
+    },
+    {
+      "source": "/tjanster/:slug/",
+      "destination": "/api/page?path=/tjanster/:slug/"
+    },
+    {
       "source": "/:page(tjanster|om-anton|utforda-jobb|kontakt|integritet)",
       "destination": "/api/page?path=/:page/"
     },
