@@ -3,6 +3,7 @@ import { test } from "node:test";
 import { createContactHandler } from "../api/contact.mjs";
 
 const env = {
+  VERCEL: "1",
   SITE_URL: "https://swea.example",
   CONTACT_FROM_EMAIL: "SWEA Enterprise AB <form@swea.example>",
   CONTACT_TO_EMAIL: "info@swea.example",
@@ -32,19 +33,20 @@ function response() {
   };
 }
 
-async function invoke({ body = submission, headers = {}, url = "/api/contact", method = "POST", config = env, fetchImpl } = {}) {
+async function invoke({ body = submission, headers = {}, url = "/api/contact", method = "POST", config = env, fetchImpl, handler } = {}) {
   const req = {
     method,
     url,
     headers: {
       origin: "https://swea.example",
+      "x-vercel-forwarded-for": "192.0.2.10",
       "content-type": "application/json",
       ...headers,
     },
     body,
   };
   const res = response();
-  await createContactHandler({ env: config, fetchImpl })(req, res);
+  await (handler || createContactHandler({ env: config, fetchImpl }))(req, res);
   return res;
 }
 
@@ -129,4 +131,23 @@ test("requires explicit consent and a valid Swedish telephone number", async () 
 test("quietly acknowledges a filled honeypot without external calls", async () => {
   const res = await invoke({ body: { ...submission, website: "https://spam.example" }, fetchImpl: async () => { throw Error("Unexpected network call"); } });
   assert.equal(res.statusCode, 200);
+});
+
+ test('limits the sixth IP attempt locally without additional CMS or mail calls', async () => {
+  let calls = 0;
+  const handler = createContactHandler({env,fetchImpl:async()=>{calls++;return {ok:true,json:async()=>({id:'test-id'})};}});
+  for(let i=0;i<5;i++) assert.equal((await invoke({handler})).statusCode,200);
+  const blocked = await invoke({handler,headers:{'x-forwarded-for':'198.51.100.1'}});
+  assert.equal(blocked.statusCode,429);
+  assert.ok(Number(blocked.headers['Retry-After'])>0);
+  assert.equal(calls,10);
+  assert.equal((await invoke({handler,headers:{'x-vercel-forwarded-for':'192.0.2.11'}})).statusCode,200);
+});
+
+test('production rejects missing or malformed trusted IP rather than trusting spoofed headers', async () => {
+  const noFetch=async()=>{throw Error('Unexpected network call');};
+  for(const ip of [undefined, 'invalid', '192.0.2.1, 192.0.2.2']) {
+    const res=await invoke({headers:{'x-vercel-forwarded-for':ip,'x-forwarded-for':'192.0.2.10'},fetchImpl:noFetch});
+    assert.equal(res.statusCode,503);
+  }
 });

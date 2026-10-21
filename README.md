@@ -34,3 +34,10 @@ Formuläret registrerar förfrågan i SiteCMS innan mejl skickas. Telefon och sa
 Lämna SiteCMS-inställningen **E-post för offertförfrågningar** tom eftersom webbplatsen sköter mejlen. Annars skickar SiteCMS också egna aviseringar och kvitton. API-nyckeln ska ha åtkomst till den befintliga sajten. SiteCMS begränsar förfrågningar per timme med en nyckelbaserad IP-hash från Vercels betrodda IP-header. Inga råa IP-adresser skickas till CMS.
 
 Installera beroenden med npm ci före byggstart. Vercel gör detta via vercel.json. CMS-innehåll hämtas genom sitecms-next med no-store; ingen deploy hook behövs. Se [Antons mejlguide](ANTON-MEJLGUIDE.md).
+
+
+## Skydd utan captcha
+
+Ett dolt website-fält fungerar som botfälla: ifyllda inskickningar ignoreras utan CMS-anrop eller mejl. I produktion godtas endast en giltig IP-adress från Vercels x-vercel-forwarded-for. En lokal begränsare stoppar fler än fem försök per IP på tio minuter per funktionsinstans; SiteCMS ger dessutom en gemensam gräns på fem registrerade förfrågningar per IP-hash och timme. Den lokala begränsaren är ett komplement, inte ett globalt datalager. Saknad eller felaktig betrodd IP ger HTTP 503. Begränsning ger HTTP 429 och Retry-After. Inga råa IP-adresser lagras av begränsaren eller skickas till CMS.
+
+Privata PDF-guider och deras arbetsfiler ligger i Git-ignorerade output/pdf respektive tmp/pdfs. Lösenord ska aldrig läggas i den versionshanterade mejlguiden.

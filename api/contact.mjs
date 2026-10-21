@@ -1,5 +1,6 @@
 import { createHmac } from 'node:crypto';
 import { cmsSettings } from '../lib/sitecms.mjs';
+import { clientIp, createRateLimiter } from '../lib/contact-rate-limit.mjs';
 
 const MAX_BODY_BYTES = 16_384;
 const REQUEST_TIMEOUT_MS = 8_000;
@@ -75,7 +76,7 @@ function validateSubmission(body) {
   return fields;
 }
 
-export function createContactHandler({ env = process.env, fetchImpl = fetch } = {}) {
+export function createContactHandler({ env = process.env, fetchImpl = fetch, rateLimit = createRateLimiter() } = {}) {
   return async function contactHandler(req, res) {
     if (req.method !== "POST") {
       res.setHeader("Allow", "POST");
@@ -116,21 +117,29 @@ export function createContactHandler({ env = process.env, fetchImpl = fetch } = 
     if (body.website !== "" && body.website !== undefined) {
       return respond(res, 400, "Kontrollera formuläret och försök igen.");
     }
+    const ip = clientIp(req, env);
+    if (!ip) return respond(res, 503, 'Förfrågan kunde inte verifieras. Försök igen senare eller ring oss.');
+    const ipHash = createHmac('sha256', cms.apiKey).update(ip).digest('hex');
+    const retryAfter = rateLimit(ipHash);
+    if (retryAfter) {
+      res.setHeader('Retry-After', String(retryAfter));
+      return respond(res, 429, 'För många försök. Vänta en stund eller ring oss.');
+    }
     const fields = validateSubmission(body);
     if (!fields) return respond(res, 400, "Kontrollera formuläret och försök igen.");
 
     let quote;
     try {
-      const ip = req.headers['x-vercel-forwarded-for']?.split(',')[0]?.trim();
       const stored = await fetchImpl('https://sitecms.se/api/v1/site/quote-requests', {
         method: 'POST',
         headers: { 'x-api-key': cms.apiKey, 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...fields, jobType: fields.service, consent: true,
-          ...(ip ? { ipHash: createHmac('sha256', cms.apiKey).update(ip).digest('hex') } : {}),
+          ipHash,
         }),
         redirect: 'error',
         signal: AbortSignal.timeout(20_000),
       });
+      if (stored.status === 429) res.setHeader('Retry-After', '3600');
       if (!stored.ok) return respond(res, stored.status === 429 ? 429 : stored.status === 400 ? 400 : 502,
         stored.status === 429 ? 'För många försök. Vänta en stund eller ring oss.' : 'Förfrågan kunde inte registreras. Kontrollera uppgifterna och försök igen.');
       quote = await stored.json();
