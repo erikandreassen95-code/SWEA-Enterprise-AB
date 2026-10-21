@@ -1,6 +1,6 @@
 # SWEA Enterprise AB
 
-Företagswebbplats på svenska med statiska sidor och ett kontaktformulär. Bygget använder Node.js 22 utan externa paket. Vercel publicerar `dist/` som statiska filer och kör kontaktfunktionen separat.
+Företagswebbplats på svenska med CMS-innehåll som hämtas vid varje sidvisning och ett kontaktformulär. Bygget använder Node.js 22 utan externa paket. Vercel publicerar resurser från `dist/` och kör sidrendering och kontaktformulär som serverfunktioner.
 
 ## Lokal förhandsvisning
 
@@ -14,7 +14,9 @@ Vercel använder `vercel.json` med `framework: null`, tomt installationssteg och
 
 Miljövariablerna finns i `.env.example`. Hemliga värden hör hemma i Vercels miljövariabler, aldrig i Git. Kontaktformuläret behöver en verifierad Resend-avsändardomän, en fungerande mottagarinkorg. Resend sköter utskicket från formuläret; inkommande e-post till `anton@sweaenterprise.se` och aliaset `info@sweaenterprise.se` går till STRATO-inkorgen enligt domänens MX-inställningar.
 
-SiteCMS används vid bygget för redigerbara texter. Kör `npm run cms:sync` när schemat har ändrats och CMS-uppgifterna är på plats. Webbplatsen är statisk, så en publicerad ändring i SiteCMS måste starta ett nytt Vercel-bygge genom manuell Redeploy i Vercel. SiteCMS-nyckeln skickas aldrig till webbläsaren. Med `CMS_REQUIRED=true` ska bygget stoppa om CMS-kopplingen saknas eller misslyckas. Lämna `CMS_REQUIRED=false` för lokal förhandsvisning utan CMS.
+SiteCMS hämtas på servern vid varje sidvisning. Sparade/publicerade CMS-ändringar syns när besökaren öppnar eller laddar om sidan, utan redeploy eller deploy hook. Sidornas HTML och SEO renderas med samma aktuella innehåll och cachas inte. CMS-nyckeln skickas aldrig till webbläsaren. Vid CMS-avbrott returneras tillfälligt HTTP 503 i stället för gamla texter. En redan öppen sida uppdateras vid omladdning.
+
+Kör `node --env-file=.env.local scripts/sitecms-sync.mjs` när fältschemat ändras. Kod- och designändringar kräver fortfarande deployment. Den lokala statiska förhandsvisningen och byggfilerna är ögonblicksbilder.
 
 Huvudadressen är `https://www.sweaenterprise.se`, vilket följer projektets befintliga domäninställning i Vercel. Rotdomänen omdirigeras dit. Använd samma www-adress i SITE_URL för att undvika omdirigering av API-anrop.
 

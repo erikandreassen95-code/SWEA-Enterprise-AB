@@ -7,9 +7,40 @@
   "redirects": [
     {
       "source": "/:path*",
-      "has": [{ "type": "host", "value": "sweaenterprise.se" }],
+      "has": [
+        {
+          "type": "host",
+          "value": "sweaenterprise.se"
+        }
+      ],
       "destination": "https://www.sweaenterprise.se/:path*",
       "permanent": true
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/",
+      "destination": "/api/page?path=/"
+    },
+    {
+      "source": "/:page(tjanster|om-anton|utforda-jobb|kontakt|integritet)",
+      "destination": "/api/page?path=/:page/"
+    },
+    {
+      "source": "/tjanster/:slug",
+      "destination": "/api/page?path=/tjanster/:slug/"
+    },
+    {
+      "source": "/index.html",
+      "destination": "/api/page?path=/"
+    },
+    {
+      "source": "/:page(tjanster|om-anton|utforda-jobb|kontakt|integritet)/index.html",
+      "destination": "/api/page?path=/:page/"
+    },
+    {
+      "source": "/tjanster/:slug/index.html",
+      "destination": "/api/page?path=/tjanster/:slug/"
     }
   ]
 }

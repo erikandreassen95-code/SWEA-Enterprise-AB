@@ -1,3 +1,5 @@
+> Nuvarande publicering: CMS-innehåll hämtas vid varje sidvisning utan cache. Efter att en ändring sparats/publicerats i SiteCMS räcker det att ladda om hemsidan. Ingen redeploy eller deploy hook behövs för textändringar. Äldre instruktioner om manuell redeploy för CMS-text nedan är ersatta.
+
 > Uppdaterat 21 oktober 2026: Cloudflare Turnstile och deploy hook används inte. Kontaktformuläret skickar via Resend med fältvalidering, origin-kontroll och ett dolt spamfält. Efter ändringar i SiteCMS görs en manuell Redeploy i Vercel. Äldre kontroller nedan är historiska.
 
 # Lansering: sweaenterprise.se
