@@ -1,3 +1,5 @@
+> Uppdaterat 21 oktober 2026: Cloudflare Turnstile och deploy hook används inte. Kontaktformuläret skickar via Resend med fältvalidering, origin-kontroll och ett dolt spamfält. Efter ändringar i SiteCMS görs en manuell Redeploy i Vercel. Äldre kontroller nedan är historiska.
+
 # Lansering: sweaenterprise.se
 
 Uppdaterad 20 oktober 2026. Avser nuvarande kod i detta repo. Domän- och nyckelvärden som bara finns i era konton är markerade som hämtvärden; de är inte skapade eller verifierade här.
@@ -32,14 +34,10 @@ Lägg dem i projektet `sweaenterpriseab` → Settings → Environment Variables.
 | `RESEND_API_KEY` | `re_…` – verklig API-nyckel | Resend → API Keys; ge sändbehörighet begränsad till domänen | **Ja** |
 | `CONTACT_FROM_EMAIL` | `SWEA Enterprise AB <info@sweaenterprise.se>` | Fast, verifierad avsändare för formulärmejl | Nej |
 | `CONTACT_TO_EMAIL` | `anton@sweaenterprise.se` | Fast mottagare; fungerande Strato-inkorg krävs | Nej |
-| `TURNSTILE_SITE_KEY` | Verklig publik site key | Cloudflare → Turnstile → widget för webbplatsen; byggs in i HTML | Nej |
-| `TURNSTILE_SECRET_KEY` | Motsvarande secret key | Samma widget; verifieras endast på servern | **Ja** |
 | `CMS_API_URL` | `https://sitecms.se` | Officiell API-bas | Nej |
 | `CMS_SITE` | Den **exakta sluggen** från sajtens Integration i SiteCMS | Förväxla inte med domänen eller sajtens visningsnamn | Nej |
 | `CMS_API_KEY` | Verklig API-nyckel för denna sajt | SiteCMS → sajt → Integration | **Ja** |
 | `CMS_REQUIRED` | `true` när CMS är inkopplat | Stoppar bygget om CMS-anslutningen saknas/fallerar; hindrar tyst återgång till gamla texter | Nej |
-| `CMS_REVALIDATE_SECRET` | En slumpmässig hemlighet med minst 32 tecken | Samma värde i SiteCMS Integration; exempelvis 32 slumpbyte kodade som 64 hextecken | **Ja** |
-| `VERCEL_DEPLOY_HOOK_URL` | Hela verkliga `https://api.vercel.com/v1/integrations/deploy/…` | Vercel → Settings → Git → Deploy Hooks; välj `main` | **Ja** |
 
 `VERCEL_ENV` sätts automatiskt av Vercel; skapa den inte själv. Koden behöver inte `DATABASE_URL`, Strato-lösenord, SMTP-variabler eller några `NEXT_PUBLIC_…`-nycklar.
 
@@ -104,24 +102,19 @@ Resends `resend._domainkey` hade redan en publik DKIM-nyckel. `_dmarc` var `v=DM
 
 Kontrollen visar DNS, inte att postlådan/aliaset är skapade eller att Resend-domänen är Verified. Det är en ögonblicksbild; läs aktuell konfiguration före ändringar.
 
-## 5. Turnstile
+## 5. Kontaktformulär utan Cloudflare
 
-Skapa en widget i Cloudflare Turnstile för **`www.sweaenterprise.se`**. Rotdomänen kan också registreras, men den ska omdirigera till www innan besökaren använder formuläret. Lägg widgetens site key och secret key i Vercel enligt tabellen. Ingen DNS-flytt eller Cloudflare-proxy behövs.
-
-Widget och server måste använda samma action `contact`. Servern kontrollerar token, hostname och action; saknad säkerhetskonfiguration ska inte ge ett falskt lyckat formulärsvar. [Cloudflares verifiering](https://developers.cloudflare.com/turnstile/get-started/server-side-validation/).
+Ingen extern captcha används. Formuläret kräver SITE_URL, CONTACT_FROM_EMAIL, CONTACT_TO_EMAIL och RESEND_API_KEY.
 
 ## 6. SiteCMS och Antons redigering
 
 1. Logga in på SiteCMS och skapa en sajt för `sweaenterprise.se` om den inte finns.
 2. Under Integration hämtas sajtens verkliga slug och API-nyckel. Lägg dem i Vercel. Sätt `CMS_REQUIRED=true` i Production när inkopplingen är klar.
-3. Lägg samma slumpmässiga `CMS_REVALIDATE_SECRET` i SiteCMS och Vercel.
-4. Ange revalidate-URL **`https://www.sweaenterprise.se/api/sitecms/revalidate`**, utan avslutande snedstreck. Den måste nås direkt utan omdirigering eller Vercel-inloggning. Använd inte rotdomänen här eftersom Vercel skickar den vidare till www.
-5. Skapa Deploy Hook för `main` i Vercel. Dess fullständiga hemliga URL lagras endast som `VERCEL_DEPLOY_HOOK_URL` i Vercel.
 6. Med `CMS_API_URL`, `CMS_SITE` och `CMS_API_KEY` satta i en säker lokal process: kör `node scripts/sitecms-sync.mjs` en gång för att registrera `sitecms.schema.json`. Använd Node 22:s env-fil-stöd om nycklarna sparas lokalt: `node --env-file=.env.local scripts/sitecms-sync.mjs`. Filen är Git-ignorerad. Lägg inte nycklarna i kommandoradshistoriken.
 7. Synken skapar sidor/fält med starttexter och använder `prune:false`; den begär inte att befintligt innehåll raderas. Kör samma synk när schemastrukturen senare utökas.
 8. Bygg/deploya igen så att SiteCMS-texterna hämtas.
 9. Under Medlemmar: bjud in `anton@sweaenterprise.se` som **redaktör** för just denna sajt. Anton väljer sitt eget lösenord via SiteCMS. Använd inte ett delat administratörskonto.
-10. Ändra en textrad, spara och följ deployen i Vercel. Kontrollera att den nya texten faktiskt syns på hemsidan.
+10. Ändra en textrad, spara och gör sedan en manuell Redeploy i Vercel. Kontrollera att den nya texten faktiskt syns på hemsidan.
 
 Fälten omfattar startsidans rubrik/ingress, presentationen av Anton och de fem tjänsternas namn, korttexter och beskrivningar. SiteCMS sid-SEO används där det finns; sajtens URL:er och canonical styrs av webbprojektet. Struktur, lagtexter och integrationshemligheter redigeras inte som vanlig webbtext.
 

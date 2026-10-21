@@ -62,7 +62,6 @@ function validateSubmission(body) {
     location: cleanField(body.location, 120),
     service: cleanField(body.service, 80, true),
     description: cleanField(body.description, 2_000, true, true),
-    turnstileToken: cleanField(body.turnstileToken, 2_048, true),
   };
   if (Object.values(fields).some((value) => value === null)) return null;
   if (!EMAIL_RE.test(fields.email) || fields.description.length < 10) return null;
@@ -82,7 +81,7 @@ export function createContactHandler({ env = process.env, fetchImpl = fetch } = 
     const siteUrl = parseSiteUrl(env.SITE_URL);
     const from = env.CONTACT_FROM_EMAIL;
     const to = env.CONTACT_TO_EMAIL;
-    if (!siteUrl || !validSender(from) || !EMAIL_RE.test(to || "") || !env.RESEND_API_KEY || !env.TURNSTILE_SECRET_KEY) {
+    if (!siteUrl || !validSender(from) || !EMAIL_RE.test(to || "") || !env.RESEND_API_KEY) {
       return respond(res, 503, "Kontaktformuläret är tillfälligt otillgängligt.");
     }
     if (req.headers.origin !== siteUrl.origin) {
@@ -110,22 +109,6 @@ export function createContactHandler({ env = process.env, fetchImpl = fetch } = 
     }
     const fields = validateSubmission(body);
     if (!fields) return respond(res, 400, "Kontrollera formuläret och försök igen.");
-
-    try {
-      const verification = await fetchImpl("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({ secret: env.TURNSTILE_SECRET_KEY, response: fields.turnstileToken }),
-        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-      });
-      if (!verification.ok) return respond(res, 502, "Säkerhetskontrollen kunde inte verifieras.");
-      const result = await verification.json();
-      if (result.success !== true || result.hostname !== siteUrl.hostname || result.action !== "contact") {
-        return respond(res, 400, "Säkerhetskontrollen misslyckades. Försök igen.");
-      }
-    } catch {
-      return respond(res, 502, "Säkerhetskontrollen kunde inte verifieras.");
-    }
 
     const content = [
       `Namn: ${fields.name}`,

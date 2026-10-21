@@ -24,7 +24,7 @@ async function buildFixture(overrides) {
   const run = spawnSync(process.execPath, ['--input-type=module', '-e', source], {
     cwd,
     encoding: 'utf8',
-    env: { ...process.env, SITE_URL: 'https://www.sweaenterprise.se', SITE_INDEXABLE: 'true', VERCEL_ENV: 'production', CMS_REQUIRED: 'true', CMS_SITE: 'test-site', CMS_API_KEY: 'test-secret-key-not-for-browser', CMS_API_URL: 'https://sitecms.se', TURNSTILE_SITE_KEY: 'test-public-key', ...overrides },
+    env: { ...process.env, SITE_URL: 'https://www.sweaenterprise.se', SITE_INDEXABLE: 'true', VERCEL_ENV: 'production', CMS_REQUIRED: 'true', CMS_SITE: 'test-site', CMS_API_KEY: 'test-secret-key-not-for-browser', CMS_API_URL: 'https://sitecms.se', ...overrides },
   });
   return { cwd, run, html: run.status === 0 ? await readFile(join(cwd, 'dist/index.html'), 'utf8') : '' };
 }
@@ -43,7 +43,8 @@ test('Production build uses CMS and SEO, escapes edited text and keeps private k
     assert.equal((sitemap.match(/<loc>/g) || []).length, 11);
     assert.ok(!sitemap.includes('404'));
     const contact = await readFile(join(cwd, 'dist/kontakt/index.html'), 'utf8');
-    assert.match(contact, /data-action="contact"/);
+    assert.doesNotMatch(contact, /cloudflare|turnstile|Formuläret är tillfälligt stängt/i);
+    assert.match(contact, /data-contact-submit/);
     assert.match(contact, /tel:\+46733688666/);
   } finally { await rm(cwd, { recursive: true, force: true }); }
 });

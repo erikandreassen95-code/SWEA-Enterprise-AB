@@ -7,7 +7,6 @@ const env = {
   CONTACT_FROM_EMAIL: "SWEA Enterprise AB <form@swea.example>",
   CONTACT_TO_EMAIL: "info@swea.example",
   RESEND_API_KEY: "test-key",
-  TURNSTILE_SECRET_KEY: "test-secret",
 };
 
 const submission = {
@@ -19,7 +18,6 @@ const submission = {
   service: "elinstallation",
   description: "Vi behöver hjälp med ett uppdrag nästa vecka.",
   website: "",
-  turnstileToken: "test-token",
 };
 
 function response() {
@@ -47,19 +45,16 @@ async function invoke({ body = submission, headers = {}, url = "/api/contact", m
   return res;
 }
 
-test("verifies Turnstile and sends plain text through Resend", async () => {
+test("sends validated plain text directly through Resend", async () => {
   const calls = [];
   const res = await invoke({ fetchImpl: async (url, options) => {
     calls.push({ url, options });
-    if (calls.length === 1) return { ok: true, json: async () => ({ success: true, hostname: "swea.example", action: "contact" }) };
     return { ok: true };
   } });
   assert.equal(res.statusCode, 200);
-  assert.equal(calls.length, 2);
-  assert.equal(calls[0].url, "https://challenges.cloudflare.com/turnstile/v0/siteverify");
-  assert.equal(calls[0].options.body.get("secret"), "test-secret");
-  assert.equal(calls[1].url, "https://api.resend.com/emails");
-  const message = JSON.parse(calls[1].options.body);
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].url, "https://api.resend.com/emails");
+  const message = JSON.parse(calls[0].options.body);
   assert.equal(message.from, "SWEA Enterprise AB <form@swea.example>");
   assert.deepEqual(message.to, ["info@swea.example"]);
   assert.equal(message.reply_to, "anna@example.com");
@@ -70,7 +65,7 @@ test("verifies Turnstile and sends plain text through Resend", async () => {
 
 test("fails closed when production configuration is missing", async () => {
   let called = false;
-  const res = await invoke({ config: { ...env, TURNSTILE_SECRET_KEY: "" }, fetchImpl: async () => { called = true; } });
+  const res = await invoke({ config: { ...env, RESEND_API_KEY: "" }, fetchImpl: async () => { called = true; } });
   assert.equal(res.statusCode, 503);
   assert.equal(called, false);
 });
@@ -89,36 +84,14 @@ test("rejects invalid fields and oversized requests before network calls", async
   assert.equal((await invoke({ body: { ...submission, name: "A".repeat(20_000) }, fetchImpl: noFetch })).statusCode, 400);
 });
 
-test("rejects an invalid or wrongly scoped Turnstile response", async () => {
-  let calls = 0;
-  const res = await invoke({ fetchImpl: async () => {
-    calls++;
-    return { ok: true, json: async () => ({ success: true, hostname: "other.example", action: "contact" }) };
-  } });
-  assert.equal(res.statusCode, 400);
-  assert.equal(calls, 1);
-});
-
-test("rejects a Turnstile response for another action", async () => {
-  let calls = 0;
-  const res = await invoke({ fetchImpl: async () => {
-    calls++;
-    return { ok: true, json: async () => ({ success: true, hostname: "swea.example", action: "other" }) };
-  } });
-  assert.equal(res.statusCode, 400);
-  assert.equal(calls, 1);
-});
-
 test("does not claim delivery when Resend fails", async () => {
   let calls = 0;
   const res = await invoke({ fetchImpl: async () => {
     calls++;
-    return calls === 1
-      ? { ok: true, json: async () => ({ success: true, hostname: "swea.example", action: "contact" }) }
-      : { ok: false, status: 500 };
+    return { ok: false, status: 500 };
   } });
   assert.equal(res.statusCode, 502);
-  assert.equal(calls, 2);
+  assert.equal(calls, 1);
 });
 
 test("quietly acknowledges a filled honeypot without external calls", async () => {

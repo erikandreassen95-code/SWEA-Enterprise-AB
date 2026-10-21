@@ -12,11 +12,11 @@ Kör `node scripts/build.mjs` och därefter `node scripts/serve.mjs`, eller dubb
 
 Vercel använder `vercel.json` med `framework: null`, tomt installationssteg och `node scripts/build.mjs`. Projektets Root Directory ska vara repots rot. Node-versionen är `22.x` i `package.json`.
 
-Miljövariablerna finns i `.env.example`. Hemliga värden hör hemma i Vercels miljövariabler, aldrig i Git. Kontaktformuläret behöver en verifierad Resend-avsändardomän, en fungerande mottagarinkorg och Cloudflare Turnstile. Resend sköter utskicket från formuläret; inkommande e-post till `anton@sweaenterprise.se` och aliaset `info@sweaenterprise.se` går till STRATO-inkorgen enligt domänens MX-inställningar.
+Miljövariablerna finns i `.env.example`. Hemliga värden hör hemma i Vercels miljövariabler, aldrig i Git. Kontaktformuläret behöver en verifierad Resend-avsändardomän, en fungerande mottagarinkorg. Resend sköter utskicket från formuläret; inkommande e-post till `anton@sweaenterprise.se` och aliaset `info@sweaenterprise.se` går till STRATO-inkorgen enligt domänens MX-inställningar.
 
-SiteCMS används vid bygget för redigerbara texter. Kör `npm run cms:sync` när schemat har ändrats och CMS-uppgifterna är på plats. Webbplatsen är statisk, så en publicerad ändring i SiteCMS måste starta ett nytt Vercel-bygge via den skyddade webhooken. SiteCMS-nyckeln skickas aldrig till webbläsaren. Med `CMS_REQUIRED=true` ska bygget stoppa om CMS-kopplingen saknas eller misslyckas. Lämna `CMS_REQUIRED=false` för lokal förhandsvisning utan CMS.
+SiteCMS används vid bygget för redigerbara texter. Kör `npm run cms:sync` när schemat har ändrats och CMS-uppgifterna är på plats. Webbplatsen är statisk, så en publicerad ändring i SiteCMS måste starta ett nytt Vercel-bygge genom manuell Redeploy i Vercel. SiteCMS-nyckeln skickas aldrig till webbläsaren. Med `CMS_REQUIRED=true` ska bygget stoppa om CMS-kopplingen saknas eller misslyckas. Lämna `CMS_REQUIRED=false` för lokal förhandsvisning utan CMS.
 
-Huvudadressen är `https://www.sweaenterprise.se`, vilket följer projektets befintliga domäninställning i Vercel. Rotdomänen omdirigeras dit. Använd samma www-adress i SITE_URL, Turnstile och SiteCMS-webhooken för att undvika omdirigering av API-anrop.
+Huvudadressen är `https://www.sweaenterprise.se`, vilket följer projektets befintliga domäninställning i Vercel. Rotdomänen omdirigeras dit. Använd samma www-adress i SITE_URL för att undvika omdirigering av API-anrop.
 
 Indexering öppnas endast när `VERCEL_ENV=production`, `SITE_URL=https://www.sweaenterprise.se` och `SITE_INDEXABLE=true` samtidigt. Förhandsvisningar förblir avindexerade. Det är en avsiktlig publiceringsspärr, så sätt den sista flaggan först efter kontrollerna i [LANSERING.md](LANSERING.md).
 
