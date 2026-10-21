@@ -18,5 +18,5 @@ test('CMS uses documented server API and fails build on upstream errors', async 
   } });
   assert.equal(text(loaded, 'home', 'hero.title'), '<edited>');
   assert.equal(text(loaded, 'home', 'missing', 'fallback'), 'fallback');
-  await assert.rejects(loadSiteContent({ env, fetchImpl: async () => ({ ok: false, status: 401 }) }), /HTTP 401/);
+  await assert.rejects(loadSiteContent({ env, fetchImpl: async () => ({ ok: false, status: 401, json: async () => ({error:"Unauthorized"}) }) }), /HTTP 401/);
 });

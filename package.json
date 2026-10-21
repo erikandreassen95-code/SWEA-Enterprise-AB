@@ -10,5 +10,8 @@
     "dev": "node scripts/build.mjs && node scripts/serve.mjs",
     "start": "node scripts/serve.mjs",
     "cms:sync": "node scripts/sitecms-sync.mjs"
+  },
+  "dependencies": {
+    "sitecms-next": "0.3.0"
   }
 }

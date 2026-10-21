@@ -26,6 +26,9 @@
     <p>
       Webbplatsen driftas via Vercel. När du skickar formuläret förmedlar e-posttjänsten
       Resend uppgifterna till vår e-postinkorg hos STRATO, där meddelandet tas emot och lagras.
+      Förfrågan sparas också i SiteCMS för att vi ska kunna följa upp den. Vi skickar ett automatiskt
+      bekräftelsemejl till den e-postadress du anger. För att begränsa missbruk skickas en
+      nyckelbaserad hash av IP-adressen till SiteCMS; den används för att begränsa antalet förfrågningar.
       Vi använder inte formuläret för nyhetsbrev eller automatiserade beslut.
     </p>
     <p>
@@ -37,7 +40,8 @@
 
     <h2>Hur länge uppgifter finns kvar</h2>
     <p>
-      Vi behåller uppgifter från en förfrågan så länge de behövs för att hantera den och eventuellt
+      Förfrågningar i SiteCMS har en lagringstid på högst tolv månader och äldre poster rensas när nya förfrågningar registreras.
+      Vi behåller i övrigt uppgifter från en förfrågan så länge de behövs för att hantera den och eventuellt
       fortsatt uppdrag. Om ett uppdrag leder till avtal kan uppgifter behöva sparas längre enligt
       avtal eller lag, till exempel för bokföring. Kontakta oss om du vill veta vad som gäller
       för just din förfrågan.

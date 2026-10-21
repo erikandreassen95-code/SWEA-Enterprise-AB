@@ -7,6 +7,8 @@ const env = {
   CONTACT_FROM_EMAIL: "SWEA Enterprise AB <form@swea.example>",
   CONTACT_TO_EMAIL: "info@swea.example",
   RESEND_API_KEY: "test-key",
+  CMS_SITE: "swea",
+  CMS_API_KEY: "test-cms-key",
 };
 
 const submission = {
@@ -18,6 +20,7 @@ const submission = {
   service: "elinstallation",
   description: "Vi behöver hjälp med ett uppdrag nästa vecka.",
   website: "",
+  consent: true,
 };
 
 function response() {
@@ -45,22 +48,31 @@ async function invoke({ body = submission, headers = {}, url = "/api/contact", m
   return res;
 }
 
-test("sends validated plain text directly through Resend", async () => {
+test("stores in SiteCMS before sending company notice and customer receipt from info", async () => {
   const calls = [];
-  const res = await invoke({ fetchImpl: async (url, options) => {
-    calls.push({ url, options });
-    return { ok: true };
+  const res = await invoke({ headers: { 'x-vercel-forwarded-for': '192.0.2.10' }, fetchImpl: async (url, options) => {
+    calls.push({url, options});
+    return { ok: true, json: async () => ({ id: 'quote-test-id', emailStatus: 'skipped' }) };
   } });
   assert.equal(res.statusCode, 200);
-  assert.equal(calls.length, 1);
-  assert.equal(calls[0].url, "https://api.resend.com/emails");
-  const message = JSON.parse(calls[0].options.body);
-  assert.equal(message.from, "SWEA Enterprise AB <form@swea.example>");
-  assert.deepEqual(message.to, ["info@swea.example"]);
-  assert.equal(message.reply_to, "anna@example.com");
-  assert.match(message.text, /Beskrivning:\nVi behöver hjälp/);
-  assert.equal(message.html, undefined);
-  assert.doesNotMatch(message.text, /test-token/);
+  assert.equal(calls.length, 2);
+  assert.equal(calls[0].url, 'https://sitecms.se/api/v1/site/quote-requests');
+  const quote = JSON.parse(calls[0].options.body);
+  assert.equal(quote.jobType, submission.service);
+  assert.equal(quote.consent, true);
+  assert.equal(quote.phone, '+46701234567');
+  assert.match(quote.ipHash, /^[a-f0-9]{64}$/);
+  assert.ok(!calls[0].options.body.includes('192.0.2.10'));
+  assert.equal(calls[1].url, 'https://api.resend.com/emails/batch');
+  const [message, receipt] = JSON.parse(calls[1].options.body);
+  assert.deepEqual(message.to, ['info@swea.example']);
+  assert.equal(message.reply_to, submission.email);
+  assert.equal(receipt.from, 'SWEA Enterprise AB <info@sweaenterprise.se>');
+  assert.deepEqual(receipt.to, [submission.email]);
+  assert.equal(receipt.reply_to, 'info@sweaenterprise.se');
+  assert.match(receipt.text, /tagit emot din förfrågan/);
+  assert.ok(!receipt.text.includes(submission.description));
+  assert.equal(calls[1].options.headers['Idempotency-Key'], 'quote-quote-test-id');
 });
 
 test("fails closed when production configuration is missing", async () => {
@@ -84,14 +96,34 @@ test("rejects invalid fields and oversized requests before network calls", async
   assert.equal((await invoke({ body: { ...submission, name: "A".repeat(20_000) }, fetchImpl: noFetch })).statusCode, 400);
 });
 
-test("does not claim delivery when Resend fails", async () => {
+test("does not send emails when CMS storage fails", async () => {
+  let calls = 0;
+  const res = await invoke({ fetchImpl: async () => { calls++; return {ok:false,status:500}; } });
+  assert.equal(res.statusCode, 502);
+  assert.equal(calls, 1);
+});
+
+test("rate limiting from CMS is returned without sending email", async () => {
+  const res = await invoke({ fetchImpl: async () => ({ok:false,status:429}) });
+  assert.equal(res.statusCode, 429);
+});
+
+test("stored request stays successful if email fails so customer does not resubmit", async () => {
   let calls = 0;
   const res = await invoke({ fetchImpl: async () => {
     calls++;
-    return { ok: false, status: 500 };
+    return calls === 1 ? {ok:true,json:async()=>({id:'saved-id'})} : {ok:false,status:500};
   } });
-  assert.equal(res.statusCode, 502);
-  assert.equal(calls, 1);
+  assert.equal(res.statusCode, 200);
+  assert.match(res.body.message, /Bekräftelsemejlet kunde inte skickas/);
+  assert.equal(calls, 2);
+});
+
+test("requires explicit consent and a valid Swedish telephone number", async () => {
+  const noFetch = async () => { throw new Error('Unexpected network call'); };
+  for (const change of [{consent:false},{consent:undefined},{phone:''},{phone:'abc'}]) {
+    assert.equal((await invoke({body:{...submission,...change},fetchImpl:noFetch})).statusCode,400);
+  }
 });
 
 test("quietly acknowledges a filled honeypot without external calls", async () => {

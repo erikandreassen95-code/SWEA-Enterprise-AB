@@ -1,6 +1,6 @@
 # SWEA Enterprise AB
 
-Företagswebbplats på svenska med CMS-innehåll som hämtas vid varje sidvisning och ett kontaktformulär. Bygget använder Node.js 22 utan externa paket. Vercel publicerar resurser från `dist/` och kör sidrendering och kontaktformulär som serverfunktioner.
+Företagswebbplats på svenska med CMS-innehåll som hämtas vid varje sidvisning och ett kontaktformulär. Bygget använder Node.js 22 och sitecms-next 0.3.0. Vercel publicerar resurser från `dist/` och kör sidrendering och kontaktformulär som serverfunktioner.
 
 ## Lokal förhandsvisning
 
@@ -25,3 +25,12 @@ Indexering öppnas endast när `VERCEL_ENV=production`, `SITE_URL=https://www.sw
 ## Kontroller
 
 Kör `node --test` för funktionstester och `node scripts/check.mjs` medan den lokala servern kör. Den senare går igenom sidstruktur, interna länkar, resurser och 404-svar. En riktig sändning och mottagning måste dessutom provas i den färdiga Vercel-miljön innan formuläret används i produktion.
+
+
+## Förfrågningar och bekräftelsemejl
+
+Formuläret registrerar förfrågan i SiteCMS innan mejl skickas. Telefon och samtycke krävs enligt SiteCMS API. Ett Resend-batchanrop skickar aviseringen till CONTACT_TO_EMAIL och ett automatiskt kvitto från info@sweaenterprise.se till kunden. Om mejlet misslyckas efter registreringen visas att förfrågan är mottagen men att kvittot inte kunde skickas; ingen ny förfrågan behöver skickas.
+
+Lämna SiteCMS-inställningen **E-post för offertförfrågningar** tom eftersom webbplatsen sköter mejlen. Annars skickar SiteCMS också egna aviseringar och kvitton. API-nyckeln ska ha åtkomst till den befintliga sajten. SiteCMS begränsar förfrågningar per timme med en nyckelbaserad IP-hash från Vercels betrodda IP-header. Inga råa IP-adresser skickas till CMS.
+
+Installera beroenden med npm ci före byggstart. Vercel gör detta via vercel.json. CMS-innehåll hämtas genom sitecms-next med no-store; ingen deploy hook behövs. Se [Antons mejlguide](ANTON-MEJLGUIDE.md).

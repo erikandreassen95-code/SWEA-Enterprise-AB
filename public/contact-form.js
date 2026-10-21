@@ -43,6 +43,7 @@
         service: getValue("service"),
         description: getValue("description"),
         website: getValue("website"),
+        consent: form.elements.namedItem("consent")?.checked === true,
       };
 
       submitButton.disabled = true;
@@ -64,8 +65,9 @@
           }
           return;
         }
+        const result = await response.json();
         form.reset();
-        showStatus("Tack! Din förfrågan har skickats. Vi återkommer så snart vi kan.", true);
+        showStatus(result.message || "Tack! Din förfrågan är mottagen.", true);
       } catch {
         showStatus("Det gick inte att skicka förfrågan. Kontrollera anslutningen och försök igen.", false);
       } finally {
