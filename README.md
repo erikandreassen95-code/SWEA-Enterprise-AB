@@ -41,3 +41,12 @@ Installera beroenden med npm ci före byggstart. Vercel gör detta via vercel.js
 Ett dolt website-fält fungerar som botfälla: ifyllda inskickningar ignoreras utan CMS-anrop eller mejl. I produktion godtas endast en giltig IP-adress från Vercels x-vercel-forwarded-for. En lokal begränsare stoppar fler än fem försök per IP på tio minuter per funktionsinstans; SiteCMS ger dessutom en gemensam gräns på fem registrerade förfrågningar per IP-hash och timme. Den lokala begränsaren är ett komplement, inte ett globalt datalager. Saknad eller felaktig betrodd IP ger HTTP 503. Begränsning ger HTTP 429 och Retry-After. Inga råa IP-adresser lagras av begränsaren eller skickas till CMS.
 
 Privata PDF-guider och deras arbetsfiler ligger i Git-ignorerade output/pdf respektive tmp/pdfs. Lösenord ska aldrig läggas i den versionshanterade mejlguiden.
+
+
+## SiteCMS live-förhandsgranskning
+
+GET /api/sitecms/preview verifierar panelens token innan säkra, partitionerade tvåtimmarscookies sätts. Token och verifierat panel-origin är HttpOnly; endast aktiveringsflaggan kan läsas av JavaScript. GET /api/sitecms/content lämnar ut sessionsinnehåll enbart efter ny tokenverifiering, utan cache. Preview ligger separat från den vanliga publicerade innehållshämtningen.
+
+site.js aktiverar inga preview-anrop eller lyssnare för vanliga besökare. I preview appliceras fält via data-sitecms, och kommunikationen accepterar bara den verifierade panelens origin och föräldrafönster. Formulär är låsta och kontakt-API:t avvisar preview-sessioner. Ingen spårning används. Avsluta-länken rensar alla preview-cookies.
+
+Panelens slugs /about och /<tjänsteslug> mappas till webbplatsens befintliga sidor enbart när preview-flaggan finns. Vanliga sidlänkar fungerar som tidigare. I Vercel kräver branch-testet CMS_API_KEY i Preview-miljön. Testa med SiteCMS → Inställningar → Adress för förhandsgranskning satt till branchens URL. Efter godkänt test används https://www.sweaenterprise.se där.

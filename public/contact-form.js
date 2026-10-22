@@ -3,6 +3,7 @@
     const form = document.getElementById("contact-form");
     const status = document.getElementById("form-status");
     if (!(form instanceof HTMLFormElement) || !status) return;
+    if (document.cookie.split(';').some(item => item.trim() === 'sitecms_preview_active=1')) return;
 
     const submitButton = form.querySelector('[data-contact-submit], button[type="submit"]');
     if (!(submitButton instanceof HTMLButtonElement)) return;

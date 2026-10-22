@@ -151,3 +151,8 @@ test('production rejects missing or malformed trusted IP rather than trusting sp
     assert.equal(res.statusCode,503);
   }
 });
+
+test('preview session cannot send a contact form even with valid fields', async () => {
+  const r = await invoke({headers:{cookie:'sitecms_preview_active=1'},fetchImpl:async()=>{throw Error('No network');}});
+  assert.equal(r.statusCode,403);
+});

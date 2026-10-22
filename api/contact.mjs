@@ -1,6 +1,7 @@
 import { createHmac } from 'node:crypto';
 import { cmsSettings } from '../lib/sitecms.mjs';
 import { clientIp, createRateLimiter } from '../lib/contact-rate-limit.mjs';
+import { cookies } from '../lib/sitecms-preview.mjs';
 
 const MAX_BODY_BYTES = 16_384;
 const REQUEST_TIMEOUT_MS = 8_000;
@@ -78,6 +79,9 @@ function validateSubmission(body) {
 
 export function createContactHandler({ env = process.env, fetchImpl = fetch, rateLimit = createRateLimiter() } = {}) {
   return async function contactHandler(req, res) {
+    if (cookies(req).sitecms_preview_active === '1' || cookies(req).sitecms_preview) {
+      return respond(res, 403, 'Formulär kan inte skickas i förhandsgranskningen.');
+    }
     if (req.method !== "POST") {
       res.setHeader("Allow", "POST");
       return respond(res, 405, "Metoden stöds inte.");

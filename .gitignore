@@ -7,3 +7,5 @@ dist/
 *.tsbuildinfo
 output/pdf/
 tmp/pdfs/
+
+tmp/preview/

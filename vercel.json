@@ -19,6 +19,138 @@
   ],
   "rewrites": [
     {
+      "source": "/kock-event/",
+      "has": [
+        {
+          "type": "cookie",
+          "key": "sitecms_preview_active",
+          "value": "1"
+        }
+      ],
+      "destination": "/api/page?path=/tjanster/kock-event/"
+    },
+    {
+      "source": "/kock-event",
+      "has": [
+        {
+          "type": "cookie",
+          "key": "sitecms_preview_active",
+          "value": "1"
+        }
+      ],
+      "destination": "/api/page?path=/tjanster/kock-event/"
+    },
+    {
+      "source": "/extra-hand-konsult/",
+      "has": [
+        {
+          "type": "cookie",
+          "key": "sitecms_preview_active",
+          "value": "1"
+        }
+      ],
+      "destination": "/api/page?path=/tjanster/extra-hand-konsult/"
+    },
+    {
+      "source": "/extra-hand-konsult",
+      "has": [
+        {
+          "type": "cookie",
+          "key": "sitecms_preview_active",
+          "value": "1"
+        }
+      ],
+      "destination": "/api/page?path=/tjanster/extra-hand-konsult/"
+    },
+    {
+      "source": "/uthyrning/",
+      "has": [
+        {
+          "type": "cookie",
+          "key": "sitecms_preview_active",
+          "value": "1"
+        }
+      ],
+      "destination": "/api/page?path=/tjanster/uthyrning/"
+    },
+    {
+      "source": "/uthyrning",
+      "has": [
+        {
+          "type": "cookie",
+          "key": "sitecms_preview_active",
+          "value": "1"
+        }
+      ],
+      "destination": "/api/page?path=/tjanster/uthyrning/"
+    },
+    {
+      "source": "/bygg-montage-installation/",
+      "has": [
+        {
+          "type": "cookie",
+          "key": "sitecms_preview_active",
+          "value": "1"
+        }
+      ],
+      "destination": "/api/page?path=/tjanster/bygg-montage-installation/"
+    },
+    {
+      "source": "/bygg-montage-installation",
+      "has": [
+        {
+          "type": "cookie",
+          "key": "sitecms_preview_active",
+          "value": "1"
+        }
+      ],
+      "destination": "/api/page?path=/tjanster/bygg-montage-installation/"
+    },
+    {
+      "source": "/fiber-natverk/",
+      "has": [
+        {
+          "type": "cookie",
+          "key": "sitecms_preview_active",
+          "value": "1"
+        }
+      ],
+      "destination": "/api/page?path=/tjanster/fiber-natverk/"
+    },
+    {
+      "source": "/fiber-natverk",
+      "has": [
+        {
+          "type": "cookie",
+          "key": "sitecms_preview_active",
+          "value": "1"
+        }
+      ],
+      "destination": "/api/page?path=/tjanster/fiber-natverk/"
+    },
+    {
+      "source": "/about/",
+      "has": [
+        {
+          "type": "cookie",
+          "key": "sitecms_preview_active",
+          "value": "1"
+        }
+      ],
+      "destination": "/api/page?path=/om-anton/"
+    },
+    {
+      "source": "/about",
+      "has": [
+        {
+          "type": "cookie",
+          "key": "sitecms_preview_active",
+          "value": "1"
+        }
+      ],
+      "destination": "/api/page?path=/om-anton/"
+    },
+    {
       "source": "/",
       "destination": "/api/page?path=/"
     },
@@ -49,6 +181,17 @@
     {
       "source": "/tjanster/:slug/index.html",
       "destination": "/api/page?path=/tjanster/:slug/"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/:path*",
+      "headers": [
+        {
+          "key": "Content-Security-Policy",
+          "value": "frame-ancestors 'self' https://sitecms.se https://www.sitecms.se https://sitecms-zeta.vercel.app"
+        }
+      ]
     }
   ]
 }

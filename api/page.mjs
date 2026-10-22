@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { loadSiteContent } from '../lib/sitecms.mjs';
 import { renderSite } from '../lib/render-site.mjs';
+import { cookies } from '../lib/sitecms-preview.mjs';
 
 const privacyHtml = readFileSync(new URL('../content/privacy.html', import.meta.url), 'utf8');
 
@@ -20,7 +21,9 @@ export function createPageHandler({ env = process.env, loadContent = loadSiteCon
     const key = path === '/' ? '/index.html' : `${path.replace(/\/$/, '')}/index.html`;
     try {
       const cmsContent = await loadContent({ env: { ...env, CMS_REQUIRED: 'true' } });
-      const pages = renderSite({ cmsContent, env, privacyHtml });
+      const preview = cookies(req).sitecms_preview_active === '1';
+      if (preview) res.setHeader('X-Robots-Tag', 'noindex, nofollow');
+      const pages = renderSite({ cmsContent, env: preview ? { ...env, SITE_INDEXABLE: 'false' } : env, privacyHtml });
       const html = pages.get(key);
       res.statusCode = html ? 200 : 404;
       return res.end(req.method === 'HEAD' ? undefined : html || pages.get('/404.html'));
