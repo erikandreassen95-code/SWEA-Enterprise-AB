@@ -1,12 +1,13 @@
 import { readFileSync } from 'node:fs';
 import { loadSiteContent } from '../lib/sitecms.mjs';
 import { renderSite } from '../lib/render-site.mjs';
-import { cookies } from '../lib/sitecms-preview.mjs';
+import { cookies, PANEL_ORIGINS } from '../lib/sitecms-preview.mjs';
 
 const privacyHtml = readFileSync(new URL('../content/privacy.html', import.meta.url), 'utf8');
 
 export function createPageHandler({ env = process.env, loadContent = loadSiteContent } = {}) {
   return async function handler(req, res) {
+    res.setHeader('Content-Security-Policy', `frame-ancestors 'self' ${PANEL_ORIGINS.join(' ')}`);
     res.setHeader('Cache-Control', 'no-store');
     res.setHeader('CDN-Cache-Control', 'no-store');
     res.setHeader('Vercel-CDN-Cache-Control', 'no-store');
